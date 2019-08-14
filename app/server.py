@@ -5,7 +5,7 @@ import logging
 
 from flask import Flask, request, make_response
 import weasyprint
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 import boto3
 
 BUCKET_ORIGIN = os.environ.get('AWS_ORIGIN_BUCKET')
@@ -70,8 +70,10 @@ def generate():
 def generateFromS3():
     origin_filename = request.form.get('originFilename', 'unnamed.pdf')
     destination_filename = request.form.get('destinationFilename', 'unnamed.pdf')
+    cssFooter = request.form.get('cssFooter', None)
     app.logger.info('POST  /pdfS3?originFilename=%s' % origin_filename)
     app.logger.info('POST  /pdfS3?destinationFilename=%s' % destination_filename)
+    app.logger.info('POST  /pdfS3?cssFooter=%s' % cssFooter)
 
     origin_path = '/tmp/%s' % origin_filename
     origin_object_name = '%s/%s' % (BUCKET_ORIGIN_KEY, origin_filename)
@@ -84,7 +86,12 @@ def generateFromS3():
     s3_client.download_file(BUCKET_ORIGIN, origin_object_name, origin_path)
 
     html = HTML(origin_path)
-    html.write_pdf(destination_path)
+
+    if cssFooter == None:
+        html.write_pdf(destination_path)
+    else:
+        footer = CSS(string=cssFooter)
+        html.write_pdf(destination_path, stylesheets=[footer])
 
     response = s3_client.upload_file(
         destination_path,
