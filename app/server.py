@@ -97,7 +97,7 @@ def generateFromS3():
         destination_path,
         BUCKET_DESTINATION,
         destination_object_name,
-        ExtraArgs={ 'ACL': 'public-read', 'ContentType': 'application/pdf' }
+        ExtraArgs={ 'ContentType': 'application/pdf' }
     )
     
     file_url = '%s/%s/%s' % (s3_client.meta.endpoint_url, BUCKET_DESTINATION, destination_object_name)
